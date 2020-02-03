@@ -32,6 +32,7 @@ public class Robot extends TimedRobot {
   public static int sol_arka_motor_kodu = 9;
 
   public static int ana_kayis_motor_kodu = 3;
+  public static int firlatma_motor_kodu = 2;
  
   public VictorSP sag_on_motor = new VictorSP(sag_on_motor_kodu);
   public VictorSP sag_arka_motor = new VictorSP(sag_arka_motor_kodu);
@@ -40,6 +41,7 @@ public class Robot extends TimedRobot {
   public VictorSP sol_arka_motor = new VictorSP(sol_arka_motor_kodu);
 
   public VictorSP ana_kayis_motoru = new VictorSP(ana_kayis_motor_kodu);
+  public VictorSP firlatma_motoru = new VictorSP(firlatma_motor_kodu);
 
   public Joystick kumanda_1 = new Joystick(0);
   public Joystick kumanda_2 = new Joystick(1);
@@ -152,15 +154,22 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
     motorGucunuSetEt(kumanda_1.getX(), kumanda_1.getY());
 
-    while(kumanda_2.getRawButton(2) == true){
+    if(kumanda_2.getRawButton(2) == true){
+      System.out.println("ana kayis motoru dongusu. Button : 2");
       anaKayisMotorunaGucVer(1.0);
+    } else if(kumanda_2.getRawButton(4) == true){
+      anaKayisMotorunaGucVer(-1.0);
+    } else {
+      System.out.println("ana kayis motoru dongusu. Button : 4");
+      anaKayisMotorunaGucVer(0.0);
     }
 
-    while(kumanda_2.getRawButton(4) == true){
-      anaKayisMotorunaGucVer(-1.0);
+    if(kumanda_2.getRawButton(5) == true){
+      firlatmaMotorunaGucVer(1.0);
+    } else {
+      firlatmaMotorunaGucVer(0.0);
     }
-      anaKayisMotorunaGucVer(0.0);
-    
+ 
   }
 
   /**
@@ -194,6 +203,14 @@ public class Robot extends TimedRobot {
 
   public void anaKayisMotorunaGucVer(double motorGucu){
     ana_kayis_motoru.set(motorGucu);
+    ana_kayis_motoru.setSafetyEnabled(true);
+    System.out.println("ana kayis motor hizi : " + ana_kayis_motoru.getSpeed());
+  }
+
+  public void firlatmaMotorunaGucVer(double motorGucu){
+    firlatma_motoru.set(motorGucu);
+    //firlatma_motoru.setSafetyEnabled(true);
+    System.out.println("firlatma motor hizi : " + firlatma_motoru.getSpeed());
   }
   
 }
