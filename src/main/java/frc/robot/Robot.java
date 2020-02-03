@@ -30,12 +30,17 @@ public class Robot extends TimedRobot {
 
   public static int sol_on_motor_kodu = 8;
   public static int sol_arka_motor_kodu = 9;
+
+  public static int ana_kayis_motor_kodu = 3;
  
   public VictorSP sag_on_motor = new VictorSP(sag_on_motor_kodu);
   public VictorSP sag_arka_motor = new VictorSP(sag_arka_motor_kodu);
 
   public VictorSP sol_on_motor = new VictorSP(sol_on_motor_kodu);
   public VictorSP sol_arka_motor = new VictorSP(sol_arka_motor_kodu);
+
+  public VictorSP ana_kayis_motoru = new VictorSP(ana_kayis_motor_kodu);
+
   public Joystick kumanda_1 = new Joystick(0);
   public Joystick kumanda_2 = new Joystick(1);
 
@@ -145,7 +150,17 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void teleopPeriodic() {
-    motorGucunuSetEt(kumanda_2.getX(), kumanda_2.getY());
+    motorGucunuSetEt(kumanda_1.getX(), kumanda_1.getY());
+
+    while(kumanda_2.getRawButton(2) == true){
+      anaKayisMotorunaGucVer(1.0);
+    }
+
+    while(kumanda_2.getRawButton(4) == true){
+      anaKayisMotorunaGucVer(-1.0);
+    }
+      anaKayisMotorunaGucVer(0.0);
+    
   }
 
   /**
@@ -154,15 +169,7 @@ public class Robot extends TimedRobot {
   @Override
   public void testPeriodic() {
   }
-
-  public double solaDonusuHesapla(double solaDonusDegeri){
-    return 0.5 * solaDonusDegeri;
-  }
-
-  public double sagaDonusuHesapla(double sagaDonusDegeri){
-    return 0.5 * sagaDonusDegeri;
-  }
-
+  
   public double motorYonDegerDogrulama(double gucDegeri){
     if (gucDegeri < -1) {
       gucDegeri = -1;
@@ -173,8 +180,8 @@ public class Robot extends TimedRobot {
   }
 
   public void motorGucunuSetEt(double xYonu, double yYonu){
-    yYonu =motorYonDegerDogrulama(yYonu);
-    xYonu = motorYonDegerDogrulama(xYonu);
+    yYonu = (motorYonDegerDogrulama(yYonu));
+    xYonu = (motorYonDegerDogrulama(xYonu));
 
     differentialDrive.setSafetyEnabled(true);
     differentialDrive.arcadeDrive(xYonu, -yYonu);
@@ -184,5 +191,10 @@ public class Robot extends TimedRobot {
 
     //robotDrive.mecanumDrive_Cartesian(kumanda_1.getX(), kumanda_1.getY(), kumanda_1.getTwist(), 0.5);
   }
+
+  public void anaKayisMotorunaGucVer(double motorGucu){
+    ana_kayis_motoru.set(motorGucu);
+  }
+  
 }
 
