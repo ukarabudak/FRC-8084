@@ -14,6 +14,7 @@ import com.revrobotics.ColorMatch;
 import com.revrobotics.ColorMatchResult;
 import com.revrobotics.ColorSensorV3;
 
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
@@ -77,6 +78,8 @@ public class Robot extends TimedRobot {
     colorMatch.addColorMatch(kGreenTarget);
     colorMatch.addColorMatch(kRedTarget);
     colorMatch.addColorMatch(kYellowTarget);  
+
+    CameraServer.getInstance().startAutomaticCapture();
   }
 
   /**
@@ -169,7 +172,7 @@ public class Robot extends TimedRobot {
     } else {
       firlatmaMotorunaGucVer(0.0);
     }
- 
+
   }
 
   /**
@@ -180,10 +183,10 @@ public class Robot extends TimedRobot {
   }
   
   public double motorYonDegerDogrulama(double gucDegeri){
-    if (gucDegeri < -1) {
-      gucDegeri = -1;
-    } else if (gucDegeri > 1) {
-      gucDegeri = 1;
+    if (gucDegeri < -2) {
+      gucDegeri = -2;
+    } else if (gucDegeri > 2) {
+      gucDegeri = 2;
     }
     return gucDegeri;
   }
@@ -209,7 +212,7 @@ public class Robot extends TimedRobot {
 
   public void firlatmaMotorunaGucVer(double motorGucu){
     firlatma_motoru.set(motorGucu);
-    //firlatma_motoru.setSafetyEnabled(true);
+    firlatma_motoru.setSafetyEnabled(true);
     System.out.println("firlatma motor hizi : " + firlatma_motoru.getSpeed());
   }
   
