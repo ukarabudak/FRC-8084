@@ -38,8 +38,12 @@ public class Robot extends TimedRobot {
   public static int sol_on_motor_kodu = 8;
   public static int sol_arka_motor_kodu = 9;
 
+  public static int toplama_motor_kodu = 2;
   public static int ana_kayis_motor_kodu = 3;
-  public static int firlatma_motor_kodu = 2;
+  public static int firlatma_motor_kodu = 4;
+
+
+  public static int rediktor_motor_kodu = 5;
  
   public VictorSP sag_on_motor = new VictorSP(sag_on_motor_kodu);
   public VictorSP sag_arka_motor = new VictorSP(sag_arka_motor_kodu);
@@ -49,6 +53,9 @@ public class Robot extends TimedRobot {
 
   public VictorSP ana_kayis_motoru = new VictorSP(ana_kayis_motor_kodu);
   public VictorSP firlatma_motoru = new VictorSP(firlatma_motor_kodu);
+  public VictorSP toplama_motoru = new VictorSP(toplama_motor_kodu);
+
+  public VictorSP rediktor_motor = new VictorSP(rediktor_motor_kodu);
 
   public Joystick kumanda_1 = new Joystick(0);
   public Joystick kumanda_2 = new Joystick(1);
@@ -128,7 +135,7 @@ public class Robot extends TimedRobot {
     if (match.color == kBlueTarget) {
       colorString = "Blue";
     } else if (match.color == kRedTarget) {
-      colorString = "Red";
+      colorString = "Red"; 
     } else if (match.color == kGreenTarget) {
       colorString = "Green";
     } else if (match.color == kYellowTarget) {
@@ -136,7 +143,6 @@ public class Robot extends TimedRobot {
     } else {
       colorString = "Unknown";
     }
-
     /**
      * Open Smart Dashboard or Shuffleboard to see the color detected by the 
      * sensor.
@@ -146,6 +152,16 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Blue", detectedColor.blue);
     SmartDashboard.putNumber("Confidence", match.confidence);
     SmartDashboard.putString("Detected Color", colorString);
+  
+    toplama_motoru.enableDeadbandElimination(true);
+    ana_kayis_motoru.enableDeadbandElimination(true);
+    rediktor_motor.enableDeadbandElimination(true);
+    firlatma_motoru.enableDeadbandElimination(true);
+
+    sag_arka_motor.enableDeadbandElimination(true);
+    sag_on_motor.enableDeadbandElimination(true);
+    sol_arka_motor.enableDeadbandElimination(true);
+    sol_on_motor.enableDeadbandElimination(true);
   }
 
   /**
@@ -181,22 +197,45 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
     motorGucunuSetEt(kumanda_1.getX(), kumanda_1.getY());
 
-    if(kumanda_2.getRawButton(2) == true){
+    if(kumanda_2.getRawButton(4) == true){
       System.out.println("ana kayis motoru dongusu. Button : 2");
-      anaKayisMotorunaGucVer(1.0);
-    } else if(kumanda_2.getRawButton(4) == true){
-      anaKayisMotorunaGucVer(-1.0);
+      anaKayisMotorunaGucVer(0.6);
+    } else if(kumanda_2.getRawButton(2) == true){
+      anaKayisMotorunaGucVer(-0.6);
     } else {
       System.out.println("ana kayis motoru dongusu. Button : 4");
       anaKayisMotorunaGucVer(0.0);
     }
-
-    if(kumanda_2.getRawButton(5) == true){
+    
+    if(kumanda_2.getRawButton(6) == true){
+      System.out.println("firlatma motoru dongusu. Button : 3");
       firlatmaMotorunaGucVer(1.0);
+    } else if (kumanda_2.getRawButton(3) == true){
+      firlatmaMotorunaGucVer(-1.0);
     } else {
+      System.out.println("firlatma motoru dongusu. Button : 1");
       firlatmaMotorunaGucVer(0.0);
     }
 
+    if(kumanda_1.getRawButton(5) == true){
+      System.out.println("rediktor motoru dongusu. Button : 5");
+      rediktorMotorunaGucVer(2.0);
+    } else if(kumanda_1.getRawButton(3) == true){
+      rediktorMotorunaGucVer(-2.0);
+    } else {
+      System.out.println("rediktor motoru dongusu. Button : 3");
+      rediktorMotorunaGucVer(0.0);
+    }
+
+    if(kumanda_2.getRawButton(1) == true){
+      System.out.println("toplama motoru dongusu. Button : 5");
+      toplamaMotorunaGucVer(1.0,8.0);
+    } else if(kumanda_2.getRawButton(5) == true){
+      System.out.println("toplama motoru dongusu. Button : 1");
+      toplamaMotorunaGucVer(-1.0,-8.0);
+    } else {
+      toplamaMotorunaGucVer(0.0,0.0);
+    }
   }
 
   /**
@@ -239,6 +278,16 @@ public class Robot extends TimedRobot {
     firlatma_motoru.setSafetyEnabled(true);
     System.out.println("firlatma motor hizi : " + firlatma_motoru.getSpeed());
   }
-  
-}
+  public void toplamaMotorunaGucVer(double motorGucu,double voltage){
+    toplama_motoru.set(motorGucu);
+    toplama_motoru.setVoltage(voltage);
+    toplama_motoru.setSafetyEnabled(true);
+    System.out.println("toplama motor hizi : " + toplama_motoru.getSpeed());
+  }
 
+  public void rediktorMotorunaGucVer(double motorGucu){
+    rediktor_motor.set(motorGucu);
+    rediktor_motor.setSafetyEnabled(true);
+    System.out.println("rediktor motor hizi : " + rediktor_motor.getSpeed());
+  }
+}
