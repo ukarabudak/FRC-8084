@@ -47,14 +47,12 @@ public class Robot extends TimedRobot {
  
   public VictorSP sag_on_motor = new VictorSP(sag_on_motor_kodu);
   public VictorSP sag_arka_motor = new VictorSP(sag_arka_motor_kodu);
-
   public VictorSP sol_on_motor = new VictorSP(sol_on_motor_kodu);
   public VictorSP sol_arka_motor = new VictorSP(sol_arka_motor_kodu);
 
   public VictorSP ana_kayis_motoru = new VictorSP(ana_kayis_motor_kodu);
   public VictorSP firlatma_motoru = new VictorSP(firlatma_motor_kodu);
   public VictorSP toplama_motoru = new VictorSP(toplama_motor_kodu);
-
   public VictorSP rediktor_motor = new VictorSP(rediktor_motor_kodu);
 
   public Joystick kumanda_1 = new Joystick(0);
@@ -79,13 +77,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotInit() {
-
-    differentialDrive.setExpiration(1.0);
-    differentialDrive.setRightSideInverted(false);
-
-    
-    differentialDrive_2.setExpiration(1.0);
-    differentialDrive_2.setRightSideInverted(false);
+    motorlariConfigureEt();
 
     colorMatch.addColorMatch(kBlueTarget);
     colorMatch.addColorMatch(kGreenTarget);
@@ -111,6 +103,37 @@ public class Robot extends TimedRobot {
       }
     }).start();
   
+  }
+
+  private void motorlariConfigureEt(){
+    rediktor_motor.setSafetyEnabled(true);
+    toplama_motoru.setSafetyEnabled(true);
+    ana_kayis_motoru.setSafetyEnabled(true);
+    firlatma_motoru.setSafetyEnabled(true);
+
+    sag_arka_motor.setSafetyEnabled(true);
+    sag_on_motor.setSafetyEnabled(true);
+    sol_arka_motor.setSafetyEnabled(true);
+    sol_on_motor.setSafetyEnabled(true);
+    
+    toplama_motoru.enableDeadbandElimination(true);
+    ana_kayis_motoru.enableDeadbandElimination(true);
+    rediktor_motor.enableDeadbandElimination(true);
+    firlatma_motoru.enableDeadbandElimination(true);
+
+    sag_arka_motor.enableDeadbandElimination(true);
+    sag_on_motor.enableDeadbandElimination(true);
+    sol_arka_motor.enableDeadbandElimination(true);
+    sol_on_motor.enableDeadbandElimination(true);
+
+    differentialDrive.setSafetyEnabled(true);
+    differentialDrive_2.setSafetyEnabled(true);
+
+    differentialDrive.setExpiration(1.0);
+    differentialDrive.setRightSideInverted(false);
+    
+    differentialDrive_2.setExpiration(1.0);
+    differentialDrive_2.setRightSideInverted(false);
   }
 
   /**
@@ -152,16 +175,6 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("Blue", detectedColor.blue);
     SmartDashboard.putNumber("Confidence", match.confidence);
     SmartDashboard.putString("Detected Color", colorString);
-  
-    toplama_motoru.enableDeadbandElimination(true);
-    ana_kayis_motoru.enableDeadbandElimination(true);
-    rediktor_motor.enableDeadbandElimination(true);
-    firlatma_motoru.enableDeadbandElimination(true);
-
-    sag_arka_motor.enableDeadbandElimination(true);
-    sag_on_motor.enableDeadbandElimination(true);
-    sol_arka_motor.enableDeadbandElimination(true);
-    sol_on_motor.enableDeadbandElimination(true);
   }
 
   /**
@@ -175,9 +188,26 @@ public class Robot extends TimedRobot {
    * the switch structure below with additional strings. If using the
    * SendableChooser make sure to add them to the chooser code above as well.
    */
+
+   /**
+    * sureler saniye cinsindendir.
+    */
+   private int gecen_sure = 0;
+   private int ileri_gitme_suresi = 2;
+   private int donus_suresi = 2;
+   private long başlangic_zamani = 0L;
+   private int firlatma_motor_suresi = 20;
+
+   private boolean ileri_gidis_tamamlandi = false;
+   private boolean donus_baslatma = false;
+   private boolean donus_tamamlandi = false;
+
+   private String donus_yonu = "SAG";
   @Override
   public void autonomousInit() {
-    
+    System.out.println("otonom sürüs basliyor.");
+    başlangic_zamani = 0L;
+    gecen_sure = 0;
     // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
 
   }
@@ -187,6 +217,48 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousPeriodic() {
+    if(başlangic_zamani == 0L){
+      başlangic_zamani =  System.currentTimeMillis();
+    }
+    
+    gecen_sure = (int) (başlangic_zamani - System.currentTimeMillis() ) / 1000;
+    System.out.println("gecen sure : " + gecen_sure);
+    if(ileri_gidis_tamamlandi == false){
+      if(gecen_sure < ileri_gitme_suresi){
+        motorGucunuSetEt(1.0, 0.0);
+      } else {
+        ileri_gidis_tamamlandi = true;
+        donus_baslatma = true;
+        autonomousInit();
+      }
+    }
+
+    if(donus_baslatma == true){
+      if(gecen_sure < donus_suresi){
+        if(donus_yonu.equals("SAG")){
+          motorGucunuSetEt(0.0, 1.0);
+        } else {
+          motorGucunuSetEt(0.0, -1.0);
+        }
+        
+      } else {
+          donus_tamamlandi = true;
+          autonomousInit();
+
+      }
+    }
+
+    if(donus_tamamlandi == true && ileri_gidis_tamamlandi == true){
+      if(gecen_sure < firlatma_motor_suresi){
+        firlatmaMotorunaGucVer(1.0);
+      } else {
+        firlatmaMotorunaGucVer(0.0);
+      }
+      
+    }
+
+
+    
 
   }
 
@@ -198,40 +270,40 @@ public class Robot extends TimedRobot {
     motorGucunuSetEt(kumanda_1.getX(), kumanda_1.getY());
 
     if(kumanda_2.getRawButton(4) == true){
-      System.out.println("ana kayis motoru dongusu. Button : 2");
+      //System.out.println("ana kayis motoru dongusu. Button : 2");
       anaKayisMotorunaGucVer(0.6);
     } else if(kumanda_2.getRawButton(2) == true){
       anaKayisMotorunaGucVer(-0.6);
     } else {
-      System.out.println("ana kayis motoru dongusu. Button : 4");
+      //System.out.println("ana kayis motoru dongusu. Button : 4");
       anaKayisMotorunaGucVer(0.0);
     }
     
     if(kumanda_2.getRawButton(6) == true){
-      System.out.println("firlatma motoru dongusu. Button : 3");
+      //System.out.println("firlatma motoru dongusu. Button : 3");
       firlatmaMotorunaGucVer(1.0);
     } else if (kumanda_2.getRawButton(3) == true){
       firlatmaMotorunaGucVer(-1.0);
     } else {
-      System.out.println("firlatma motoru dongusu. Button : 1");
+     // System.out.println("firlatma motoru dongusu. Button : 1");
       firlatmaMotorunaGucVer(0.0);
     }
 
     if(kumanda_1.getRawButton(5) == true){
-      System.out.println("rediktor motoru dongusu. Button : 5");
+      //System.out.println("rediktor motoru dongusu. Button : 5");
       rediktorMotorunaGucVer(2.0);
     } else if(kumanda_1.getRawButton(3) == true){
       rediktorMotorunaGucVer(-2.0);
     } else {
-      System.out.println("rediktor motoru dongusu. Button : 3");
+      //System.out.println("rediktor motoru dongusu. Button : 3");
       rediktorMotorunaGucVer(0.0);
     }
 
     if(kumanda_2.getRawButton(1) == true){
-      System.out.println("toplama motoru dongusu. Button : 5");
+      //System.out.println("toplama motoru dongusu. Button : 5");
       toplamaMotorunaGucVer(1.0,8.0);
     } else if(kumanda_2.getRawButton(5) == true){
-      System.out.println("toplama motoru dongusu. Button : 1");
+    //  System.out.println("toplama motoru dongusu. Button : 1");
       toplamaMotorunaGucVer(-1.0,-8.0);
     } else {
       toplamaMotorunaGucVer(0.0,0.0);
@@ -258,36 +330,40 @@ public class Robot extends TimedRobot {
     yYonu = (motorYonDegerDogrulama(yYonu));
     xYonu = (motorYonDegerDogrulama(xYonu));
 
-    differentialDrive.setSafetyEnabled(true);
     differentialDrive.arcadeDrive(xYonu, -yYonu);
-
-    differentialDrive_2.setSafetyEnabled(true);
     differentialDrive_2.arcadeDrive(xYonu, -yYonu);
 
-    //robotDrive.mecanumDrive_Cartesian(kumanda_1.getX(), kumanda_1.getY(), kumanda_1.getTwist(), 0.5);
   }
 
   public void anaKayisMotorunaGucVer(double motorGucu){
     ana_kayis_motoru.set(motorGucu);
-    ana_kayis_motoru.setSafetyEnabled(true);
-    System.out.println("ana kayis motor hizi : " + ana_kayis_motoru.getSpeed());
+    if(motorGucu >0.0){
+      System.out.println("ana kayis motor hizi : " + ana_kayis_motoru.getSpeed());
+    }
+    
   }
 
   public void firlatmaMotorunaGucVer(double motorGucu){
     firlatma_motoru.set(motorGucu);
-    firlatma_motoru.setSafetyEnabled(true);
-    System.out.println("firlatma motor hizi : " + firlatma_motoru.getSpeed());
+    if(motorGucu >0.0){
+      System.out.println("firlatma motor hizi : " + firlatma_motoru.getSpeed());
+    }
+    
   }
   public void toplamaMotorunaGucVer(double motorGucu,double voltage){
     toplama_motoru.set(motorGucu);
     toplama_motoru.setVoltage(voltage);
-    toplama_motoru.setSafetyEnabled(true);
-    System.out.println("toplama motor hizi : " + toplama_motoru.getSpeed());
+    if(motorGucu >0.0){
+      System.out.println("toplama motor hizi : " + toplama_motoru.getSpeed());
+    }
+    
   }
 
   public void rediktorMotorunaGucVer(double motorGucu){
     rediktor_motor.set(motorGucu);
-    rediktor_motor.setSafetyEnabled(true);
-    System.out.println("rediktor motor hizi : " + rediktor_motor.getSpeed());
+    if(motorGucu >0.0){
+      System.out.println("rediktor motor hizi : " + rediktor_motor.getSpeed());
+    }
+    
   }
 }
