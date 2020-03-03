@@ -55,7 +55,7 @@ public class Robot extends TimedRobot {
   public VictorSP ana_kayis_motoru = new VictorSP(ana_kayis_motor_kodu);
   public VictorSP firlatma_motoru = new VictorSP(firlatma_motor_kodu);
   public VictorSP toplama_motoru = new VictorSP(toplama_motor_kodu);
- // public VictorSP rediktor_motor = new VictorSP(rediktor_motor_kodu);
+  public VictorSP rediktor_motor = new VictorSP(rediktor_motor_kodu);
 
   public Joystick kumanda_1 = new Joystick(0);
   public Joystick kumanda_2 = new Joystick(1);
@@ -110,7 +110,7 @@ public class Robot extends TimedRobot {
   }
 
   public void motorGuvenlikOzelliginiSetEt(boolean isSafety){
-    //rediktor_motor.setSafetyEnabled(isSafety);
+    rediktor_motor.setSafetyEnabled(isSafety);
     toplama_motoru.setSafetyEnabled(isSafety);
     ana_kayis_motoru.setSafetyEnabled(isSafety);
     firlatma_motoru.setSafetyEnabled(isSafety);
@@ -125,7 +125,7 @@ public class Robot extends TimedRobot {
     motorGuvenlikOzelliginiSetEt(true);
     toplama_motoru.enableDeadbandElimination(true);
     ana_kayis_motoru.enableDeadbandElimination(true);
-   // rediktor_motor.enableDeadbandElimination(true);
+    rediktor_motor.enableDeadbandElimination(true);
     firlatma_motoru.enableDeadbandElimination(true);
 
     sag_arka_motor.enableDeadbandElimination(true);
@@ -134,8 +134,7 @@ public class Robot extends TimedRobot {
     sol_on_motor.enableDeadbandElimination(true);
 
     differentialDrive.setSafetyEnabled(true);
-
-    differentialDrive.setExpiration(1.0);
+    differentialDrive.setExpiration(0.1);
     differentialDrive.setRightSideInverted(false);
   }
 
@@ -195,32 +194,14 @@ public class Robot extends TimedRobot {
    /**
     * sureler saniye cinsindendir.
     */
-   private double gecen_sure = 0;
-   private int ileri_gitme_suresi = 2;
-   private int donus_suresi = 2;
-   private double başlangic_zamani = 0;
-   private int firlatma_motor_suresi = 20;
-
    private boolean ileri_gidis_tamamlandi = false;
-   private boolean donus_baslatma = false;
    private boolean donus_tamamlandi = false;
-
    private String donus_yonu = "SAG";
   @Override
   public void autonomousInit() {
-    başlangic_zamani = Timer.getFPGATimestamp();
     System.out.println("otonom sürüs basliyor.");
-    motorGuvenlikOzelliginiSetEt(false);
     // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
 
-  }
-
-  public void otonom_surelerini_sifirla(){
-    başlangic_zamani = Timer.getFPGATimestamp();
-    gecen_sure = 0;
-  }
-  public int gecen_sureyi_al(){
-    return (int) ( System.currentTimeMillis() - başlangic_zamani  ) / 1000;
   }
   /**
    * This function is called periodically during autonomous.
@@ -228,23 +209,42 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousPeriodic() {
-    gecen_sure = Timer.getFPGATimestamp();
     
-    if(ileri_gidis_tamamlandi == false){
-      System.out.println("gecen sure : " + gecen_sureyi_al());
-      if(gecen_sure - başlangic_zamani < ileri_gitme_suresi){
-        System.out.println("motora guc gidiyor");
-        sag_on_motor.set(-0.3);
-        sag_arka_motor.set(-0.3);
-        sol_on_motor.set(0.3);
-        sol_arka_motor.set(0.3);
-      } else{
-        sag_on_motor.set(0);
-        sag_arka_motor.set(0);
-        sol_on_motor.set(0);
-        sol_arka_motor.set(0);
+    differentialDrive.setSafetyEnabled(false);
+    if(ileri_gidis_tamamlandi == false){  
+        System.out.println("robot ileri gidiyor");
+        differentialDrive.tankDrive(0.5, 0.5);
+        Timer.delay(3.0);
+        differentialDrive.tankDrive(0.0, 0.0);
+        ileri_gidis_tamamlandi= true;
+      } 
+
+      if(ileri_gidis_tamamlandi == true){
+        if(donus_yonu.equals("SAG")){
+          differentialDrive.tankDrive(0.5, -0.5);
+          Timer.delay(1.0);
+          differentialDrive.tankDrive(0.0, 0.0);
+          donus_tamamlandi = true;
+        } else {
+          differentialDrive.tankDrive(-0.5, 0.5);
+          Timer.delay(1.0);
+          differentialDrive.tankDrive(0.0, 0.0);
+          donus_tamamlandi = true;
+        }
       }
-    }
+
+      if(donus_tamamlandi == true){
+        firlatma_motoru.setSafetyEnabled(false);
+        firlatma_motoru.set(1.0);
+        Timer.delay(15.0);
+        firlatma_motoru.set(0.0);
+      }
+
+      if(ileri_gidis_tamamlandi == true && donus_tamamlandi == true){
+        firlatma_motoru.setSafetyEnabled(true);
+        differentialDrive.setSafetyEnabled(true);
+
+      }
   }
 
   /**
@@ -348,9 +348,9 @@ public class Robot extends TimedRobot {
   }
 
   public void rediktorMotorunaGucVer(double motorGucu){
-   // rediktor_motor.set(motorGucu);
+    rediktor_motor.set(motorGucu);
     if(motorGucu >0.0){
-     // System.out.println("rediktor motor hizi : " + rediktor_motor.getSpeed());
+      System.out.println("rediktor motor hizi : " + rediktor_motor.getSpeed());
     }
     
   }
