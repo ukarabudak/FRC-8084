@@ -33,7 +33,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 
 public class Robot extends TimedRobot {
-
   public static int sag_on_motor_kodu = 0;
   public static int sag_arka_motor_kodu = 1;
 
@@ -134,7 +133,7 @@ public class Robot extends TimedRobot {
     sol_on_motor.enableDeadbandElimination(true);
 
     differentialDrive.setSafetyEnabled(true);
-    differentialDrive.setExpiration(0.1);
+    differentialDrive.setExpiration(1.0);
     differentialDrive.setRightSideInverted(false);
   }
 
@@ -197,9 +196,13 @@ public class Robot extends TimedRobot {
    private boolean ileri_gidis_tamamlandi = false;
    private boolean donus_tamamlandi = false;
    private String donus_yonu = "SAG";
+   private double baslangic_zamani;
   @Override
   public void autonomousInit() {
     System.out.println("otonom sürüs basliyor.");
+    motorGuvenlikOzelliginiSetEt(false);
+    differentialDrive.setSafetyEnabled(false);
+    baslangic_zamani = Timer.getFPGATimestamp();
     // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
 
   }
@@ -207,44 +210,107 @@ public class Robot extends TimedRobot {
    * This function is called periodically during autonomous.
    */
 
+   
+   public void otonomIleriGit(double calismaSuresi){
+    double zaman = Timer.getFPGATimestamp();
+    if(zaman - baslangic_zamani < calismaSuresi){
+      differentialDrive.tankDrive(0.4, -0.4);
+      System.out.println("robot ileri gidiyor");
+    } else {
+      differentialDrive.tankDrive(0.0, 0.0);
+      baslangic_zamani = Timer.getFPGATimestamp();
+      System.out.println("İleri gidis tamamlandı.");
+      
+    }
+
+   }
+
+   public void otonomSagaDon(double calismaSuresi){
+    System.out.println("robot saga gidiyor");
+    differentialDrive.tankDrive(0.4, 0.4);
+   }
+
+   public void otonomSolaDon(double calismaSuresi){
+    System.out.println("robot sola gidiyor");
+    differentialDrive.tankDrive(-0.4, -0.4);
+  }
+
+  public void otonomTopFirlat(double calismaSuresi){
+
+  }
+
+   
   @Override
   public void autonomousPeriodic() {
-    
-    differentialDrive.setSafetyEnabled(false);
-    if(ileri_gidis_tamamlandi == false){  
-        System.out.println("robot ileri gidiyor");
-        differentialDrive.tankDrive(0.5, 0.5);
-        Timer.delay(3.0);
+    double zaman = Timer.getFPGATimestamp();
+    if(zaman - baslangic_zamani < 4){
+      System.out.println("robot ileri gidiyor");
+      differentialDrive.tankDrive(0.4, -0.4);
+    } else {
+      if(ileri_gidis_tamamlandi == false){
+        System.out.println("İleri gidis tamamlandı.");
         differentialDrive.tankDrive(0.0, 0.0);
         ileri_gidis_tamamlandi= true;
-      } 
+      }
+    }
 
-      if(ileri_gidis_tamamlandi == true){
-        if(donus_yonu.equals("SAG")){
-          differentialDrive.tankDrive(0.5, -0.5);
-          Timer.delay(1.0);
-          differentialDrive.tankDrive(0.0, 0.0);
-          donus_tamamlandi = true;
+    if(ileri_gidis_tamamlandi == true){
+    	  
+	 if(donus_yonu.equals("SAG")){
+        if(zaman - baslangic_zamani < 5){
+          System.out.println("robot saga gidiyor");
+          differentialDrive.tankDrive(0.4, 0.4);
         } else {
-          differentialDrive.tankDrive(-0.5, 0.5);
-          Timer.delay(1.0);
+          if(donus_tamamlandi == false){
+            differentialDrive.tankDrive(0.0, 0.0);
+            System.out.println("saga donus tamamlandı");
+            
+            if(zaman - baslangic_zamani < 5.5){
+              System.out.println("robot yarım sola gidiyor");
+              differentialDrive.tankDrive(-0.2, -0.2);
+           } else {
+              differentialDrive.tankDrive(0.0, 0.0);
+              System.out.println("sola yarım donus tamamlandı");
+              donus_tamamlandi = true;
+           }
+          }
+        
+      } 
+    } else {
+      if(zaman - baslangic_zamani < 5){
+        System.out.println("robot sola gidiyor");
+        differentialDrive.tankDrive(-0.4, -0.4);
+      }else {
+        if(donus_tamamlandi == false){
           differentialDrive.tankDrive(0.0, 0.0);
-          donus_tamamlandi = true;
+          System.out.println("sola donus tamamlandı");
+          
+          if(zaman - baslangic_zamani < 5.5){
+            System.out.println("robot yarım saga gidiyor");
+            differentialDrive.tankDrive(0.2, 0.2);
+         } else {
+            differentialDrive.tankDrive(0.0, 0.0);
+            System.out.println("saga yarım donus tamamlandı");
+            donus_tamamlandi = true;
+         }
         }
       }
+    } 
+    }
 
-      if(donus_tamamlandi == true){
+    if(donus_tamamlandi == true){
+      if(zaman - baslangic_zamani < 15){
         firlatma_motoru.setSafetyEnabled(false);
         firlatma_motoru.set(1.0);
-        Timer.delay(15.0);
+      } else {
+        System.out.println("Firlatma tamamlandı");
         firlatma_motoru.set(0.0);
-      }
-
-      if(ileri_gidis_tamamlandi == true && donus_tamamlandi == true){
         firlatma_motoru.setSafetyEnabled(true);
         differentialDrive.setSafetyEnabled(true);
-
       }
+      
+    }
+   
   }
 
   /**
