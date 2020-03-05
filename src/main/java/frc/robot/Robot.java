@@ -147,7 +147,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotPeriodic() {
-    Color color = colorSensor.getColor();
+    
     Color detectedColor = colorSensor.getColor();
 
     /**
@@ -194,124 +194,179 @@ public class Robot extends TimedRobot {
     * sureler saniye cinsindendir.
     */
    private boolean ileri_gidis_tamamlandi = false;
+   private boolean ikinci_gidis_tamamlandi = false;
    private boolean donus_tamamlandi = false;
-   private String donus_yonu = "SAG";
+   private boolean ikinci_donus_tamamlandi = false;
+   private boolean firlatma_tamamlandi = false;
+   private String donus_yonu = "SOL";
    private double baslangic_zamani;
+   private boolean otonom_basladi = false;
+
+   public void otonomParametreleriniSifirla(){
+    ileri_gidis_tamamlandi = false;
+    ikinci_gidis_tamamlandi = false;
+    donus_tamamlandi = false;
+    ikinci_donus_tamamlandi = false;
+    firlatma_tamamlandi = false;
+    baslangic_zamani = 0.0;
+    otonom_basladi = false;
+   }
+   
+  @Override
+  public void disabledInit() {
+    if(otonom_basladi == true){
+      otonomParametreleriniSifirla();
+    }
+
+  }
+
   @Override
   public void autonomousInit() {
     System.out.println("otonom sürüs basliyor.");
     motorGuvenlikOzelliginiSetEt(false);
     differentialDrive.setSafetyEnabled(false);
     baslangic_zamani = Timer.getFPGATimestamp();
+
     // m_autoSelected = SmartDashboard.getString("Auto Selector", kDefaultAuto);
 
   }
-  /**
-   * This function is called periodically during autonomous.
-   */
 
-   
-   public void otonomIleriGit(double calismaSuresi){
+   public boolean otonomIleriGit(double calismaSuresi){
     double zaman = Timer.getFPGATimestamp();
     if(zaman - baslangic_zamani < calismaSuresi){
-      differentialDrive.tankDrive(0.4, -0.4);
+      differentialDrive.tankDrive(0.5, -0.5);
       System.out.println("robot ileri gidiyor");
     } else {
       differentialDrive.tankDrive(0.0, 0.0);
       baslangic_zamani = Timer.getFPGATimestamp();
       System.out.println("İleri gidis tamamlandı.");
-      
+      return true;
     }
 
+    return false;
+
    }
 
-   public void otonomSagaDon(double calismaSuresi){
-    System.out.println("robot saga gidiyor");
-    differentialDrive.tankDrive(0.4, 0.4);
+   public boolean otonomSagaDon(double calismaSuresi){
+      double zaman = Timer.getFPGATimestamp();
+      if(zaman - baslangic_zamani < calismaSuresi){
+        differentialDrive.tankDrive(0.4, 0.4);
+        System.out.println("robot saga gidiyor");
+      } else {
+        differentialDrive.tankDrive(0.0, 0.0);
+        baslangic_zamani = Timer.getFPGATimestamp();
+        System.out.println("saga donusu tamamlandı.");
+        return true;
+      }
+
+      return false;
    }
 
-   public void otonomSolaDon(double calismaSuresi){
-    System.out.println("robot sola gidiyor");
-    differentialDrive.tankDrive(-0.4, -0.4);
+   public boolean otonomSolaDon(double calismaSuresi) {
+      double zaman = Timer.getFPGATimestamp();
+      if(zaman - baslangic_zamani < calismaSuresi){
+        differentialDrive.tankDrive(-0.4, -0.4);
+        System.out.println("robot sola gidiyor");
+      } else {
+        differentialDrive.tankDrive(0.0, 0.0);
+        baslangic_zamani = Timer.getFPGATimestamp();
+        System.out.println("sola donusu tamamlandı.");
+        return true;
+      }
+
+      return false;
   }
 
-  public void otonomTopFirlat(double calismaSuresi){
-
+  public boolean otonomTopFirlat(double calismaSuresi) {
+    double zaman = Timer.getFPGATimestamp();
+    if(zaman - baslangic_zamani < calismaSuresi){
+      firlatma_motoru.setSafetyEnabled(false);
+      firlatma_motoru.set(1.0);
+      System.out.println("firlatma basladi");
+    } else {
+      System.out.println("Firlatma tamamlandı");
+      firlatma_motoru.set(0.0);
+      return true;
+   }
+   return false;
   }
+
+  /**
+   * This function is called periodically during autonomous.
+   */
 
    
   @Override
   public void autonomousPeriodic() {
-    double zaman = Timer.getFPGATimestamp();
-    if(zaman - baslangic_zamani < 4){
-      System.out.println("robot ileri gidiyor");
-      differentialDrive.tankDrive(0.4, -0.4);
-    } else {
-      if(ileri_gidis_tamamlandi == false){
-        System.out.println("İleri gidis tamamlandı.");
-        differentialDrive.tankDrive(0.0, 0.0);
-        ileri_gidis_tamamlandi= true;
+     otonom_basladi =true;
+     if(ileri_gidis_tamamlandi == false){
+      boolean  durum = otonomIleriGit(5.0);
+      if(durum == true){
+        ileri_gidis_tamamlandi = true;
       }
-    }
+     }
 
     if(ileri_gidis_tamamlandi == true){
-    	  
-	 if(donus_yonu.equals("SAG")){
-        if(zaman - baslangic_zamani < 5){
-          System.out.println("robot saga gidiyor");
-          differentialDrive.tankDrive(0.4, 0.4);
-        } else {
-          if(donus_tamamlandi == false){
-            differentialDrive.tankDrive(0.0, 0.0);
-            System.out.println("saga donus tamamlandı");
-            
-            if(zaman - baslangic_zamani < 5.5){
-              System.out.println("robot yarım sola gidiyor");
-              differentialDrive.tankDrive(-0.2, -0.2);
-           } else {
-              differentialDrive.tankDrive(0.0, 0.0);
-              System.out.println("sola yarım donus tamamlandı");
-              donus_tamamlandi = true;
-           }
-          }
-        
-      } 
-    } else {
-      if(zaman - baslangic_zamani < 5){
-        System.out.println("robot sola gidiyor");
-        differentialDrive.tankDrive(-0.4, -0.4);
-      }else {
+      if(donus_yonu.equals("SAG")){
         if(donus_tamamlandi == false){
-          differentialDrive.tankDrive(0.0, 0.0);
-          System.out.println("sola donus tamamlandı");
+          boolean  donus_durumu = otonomSagaDon(1.5);
+          if(donus_durumu == true){
+              donus_tamamlandi = true;
+          }
+        } else {
+          if(ikinci_gidis_tamamlandi == false){
+            boolean  durum = otonomIleriGit(2.0);
+            if(durum == true){
+              ikinci_gidis_tamamlandi = true;
+            }
+          } else {
+            if(ikinci_donus_tamamlandi == false){
+              boolean ikinci_donus_durumu = otonomSolaDon(1.3);
+              if(ikinci_donus_durumu == true){
+                ikinci_donus_tamamlandi = true;
+              }
+            } 
+          }
           
-          if(zaman - baslangic_zamani < 5.5){
-            System.out.println("robot yarım saga gidiyor");
-            differentialDrive.tankDrive(0.2, 0.2);
-         } else {
-            differentialDrive.tankDrive(0.0, 0.0);
-            System.out.println("saga yarım donus tamamlandı");
-            donus_tamamlandi = true;
-         }
+        }
+        
+      } else if (donus_yonu.equals("SOL")) {
+        if(donus_tamamlandi == false){
+          boolean  donus_durumu = otonomSolaDon(1.0);
+          if(donus_durumu == true){
+              donus_tamamlandi = true;
+          }
+        } else {
+          if(ikinci_gidis_tamamlandi == false){
+            boolean  durum = otonomIleriGit(2.0);
+            if(durum == true){
+              ikinci_gidis_tamamlandi = true;
+            }
+          } else {
+            if(ikinci_donus_tamamlandi == false){
+              boolean ikinci_donus_durumu = otonomSagaDon(1.3);
+              if(ikinci_donus_durumu == true){
+                ikinci_donus_tamamlandi = true;
+              }
+            }
+          }
+          
         }
       }
-    } 
-    }
 
-    if(donus_tamamlandi == true){
-      if(zaman - baslangic_zamani < 15){
-        firlatma_motoru.setSafetyEnabled(false);
-        firlatma_motoru.set(1.0);
-      } else {
-        System.out.println("Firlatma tamamlandı");
-        firlatma_motoru.set(0.0);
-        firlatma_motoru.setSafetyEnabled(true);
-        differentialDrive.setSafetyEnabled(true);
-      }
+    if(donus_tamamlandi == true && ikinci_donus_tamamlandi == true){
+      if(firlatma_tamamlandi == false){
+        boolean  durum = otonomTopFirlat(7.0);
+        if(durum == true){
+          firlatma_tamamlandi = true;
+        }
+       } else {
+         motorlariConfigureEt();
+       }
       
     }
-   
   }
+}
 
   /**
    * This function is called periodically during operator control.
