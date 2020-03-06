@@ -39,7 +39,6 @@ public class Robot extends TimedRobot {
   public static int ana_kayis_motor_kodu = 3;
   public static int firlatma_motor_kodu = 4;
   public static int rediktor_motor_kodu = 5;
-
   public static int renk_bulma_motor_kodu = 6;
  
   public VictorSP sag_on_motor = new VictorSP(sag_on_motor_kodu);
@@ -110,7 +109,7 @@ public class Robot extends TimedRobot {
     toplama_motoru.setSafetyEnabled(isSafety);
     ana_kayis_motoru.setSafetyEnabled(isSafety);
     firlatma_motoru.setSafetyEnabled(isSafety);
-    renk_bulma_motoru.setSafetyEnabled(isSafety);
+    
 
     sag_arka_motor.setSafetyEnabled(isSafety);
     sag_on_motor.setSafetyEnabled(isSafety);
@@ -124,7 +123,7 @@ public class Robot extends TimedRobot {
     ana_kayis_motoru.enableDeadbandElimination(true);
     rediktor_motor.enableDeadbandElimination(true);
     firlatma_motoru.enableDeadbandElimination(true);
-    renk_bulma_motoru.enableDeadbandElimination(true);
+   // renk_bulma_motoru.enableDeadbandElimination(true);
 
     sag_arka_motor.enableDeadbandElimination(true);
     sag_on_motor.enableDeadbandElimination(true);
@@ -149,12 +148,15 @@ public class Robot extends TimedRobot {
 
   }
 
-  public Boolean renkBulucu(Color arananRenk){
+  public boolean renkBulucu(Color arananRenk){
     Color detectedColor = colorSensor.getColor();
     ColorMatchResult match = colorMatch.matchClosestColor(detectedColor);
-    if(match.color == arananRenk){
+    
+   // System.out.println("renk :" + match.color.blue + ", aranan renk : " + arananRenk.blue);
+  
+    if(match.color == arananRenk) {
       return true;
-    }
+    } 
     return false;
   }
 
@@ -351,6 +353,9 @@ public class Robot extends TimedRobot {
   }
 }
 
+private boolean renk_bulundu = false;
+private double renk_motor_guc_degeri = 0.2;
+private double renk_motor_volgate_degeri = 2.4;
   /**
    * This function is called periodically during operator control.
    */
@@ -358,6 +363,83 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
     motorGucunuSetEt(kumanda_1.getX(), kumanda_1.getY());
 
+    if(kumanda_1.getRawButton(10) == true && renk_bulundu == false ){
+      System.out.println("Mavi Renk Aranıyor");
+      renk_bulma_motoru.set(renk_motor_guc_degeri);
+      renk_bulma_motoru.setVoltage(renk_motor_volgate_degeri);
+      boolean durum = renkBulucu(kBlueTarget);
+      if(durum == true){
+        renk_bulundu = true;
+        System.out.println("Mavi Renk Bulundu");
+        renk_bulma_motoru.set(0.0);
+        renk_bulma_motoru.setVoltage(0.0);
+      
+      } 
+    } else if(kumanda_1.getRawButtonReleased(10) == true){
+      System.out.println("renk motor sıfır");
+      renk_bulma_motoru.set(0.0);
+      renk_bulma_motoru.setVoltage(0.0);
+      renk_bulundu = false;
+
+    }
+
+    if(kumanda_1.getRawButton(9) == true && renk_bulundu == false ){
+      System.out.println("Sari Renk Aranıyor");
+      renk_bulma_motoru.set(renk_motor_guc_degeri);
+      renk_bulma_motoru.setVoltage(renk_motor_volgate_degeri);
+      boolean durum = renkBulucu(kYellowTarget);
+      if(durum == true){
+        renk_bulundu = true;
+        System.out.println("Sari Renk Bulundu");
+        renk_bulma_motoru.set(0.0);
+        renk_bulma_motoru.setVoltage(0.0);
+      
+      }
+    } else if(kumanda_1.getRawButtonReleased(9) == true && renk_bulundu == false ){
+      System.out.println("renk motor sıfır");
+      renk_bulma_motoru.set(0.0);
+      renk_bulma_motoru.setVoltage(0.0);
+      renk_bulundu = false;
+    }
+
+    if(kumanda_1.getRawButton(8) == true && renk_bulundu == false ){
+      System.out.println("Kırmızı Renk Araniyor");
+      renk_bulma_motoru.set(renk_motor_guc_degeri);
+      renk_bulma_motoru.setVoltage(renk_motor_volgate_degeri);
+      boolean durum = renkBulucu(kRedTarget);
+      if(durum == true){
+        renk_bulundu = true;
+        System.out.println("Kırmızı Renk Bulundu");
+        renk_bulma_motoru.set(0.0);
+        renk_bulma_motoru.setVoltage(0.0);
+      
+      }
+    } else if(kumanda_1.getRawButtonReleased(8) == true){
+      System.out.println("renk motor sıfır");
+      renk_bulma_motoru.set(0.0);
+      renk_bulma_motoru.setVoltage(0.0);
+      renk_bulundu = false;
+    }
+
+    if(kumanda_1.getRawButton(7) == true && renk_bulundu == false ){
+      System.out.println("Yesil Renk aranıyor");
+      renk_bulma_motoru.set(renk_motor_guc_degeri);
+      renk_bulma_motoru.setVoltage(renk_motor_volgate_degeri);
+      boolean durum = renkBulucu(kGreenTarget);
+      if(durum == true){
+        renk_bulundu = true;
+        System.out.println("Yesil Renk Bulundu");
+        renk_bulma_motoru.set(0.0);
+        renk_bulma_motoru.setVoltage(0.0);
+      
+      }
+    }else if(kumanda_1.getRawButtonReleased(7) == true){
+      System.out.println("renk motor sıfır");
+      renk_bulma_motoru.set(0.0);
+      renk_bulma_motoru.setVoltage(0.0);
+      renk_bulundu = false;
+    }
+    
     if(kumanda_2.getRawButton(4) == true){
       //System.out.println("ana kayis motoru dongusu. Button : 2");
       anaKayisMotorunaGucVer(0.6);
@@ -398,16 +480,6 @@ public class Robot extends TimedRobot {
       toplamaMotorunaGucVer(0.0,0.0);
     }
 
-    if(kumanda_1.getRawButton(10) == true) {
-      renkBulucu(kRedTarget);
-    } else if(kumanda_1.getRawButton(11) == true) {
-      renkBulucu(kGreenTarget);
-    } else if(kumanda_1.getRawButton(12) == true) {
-      renkBulucu(kBlueTarget);
-    } else if(kumanda_1.getRawButton(13) == true) {
-      renkBulucu(kYellowTarget);
-    }
-
   }
 
 
@@ -432,7 +504,7 @@ public class Robot extends TimedRobot {
     xYonu = (motorYonDegerDogrulama(xYonu));
 
     if (yYonu != 0.0 || xYonu != 0.0 ) {
-      System.out.println("x yonu : " + xYonu + " y yonu : " + yYonu );
+      //System.out.println("x yonu : " + xYonu + " y yonu : " + yYonu );
     }
 
     differentialDrive.arcadeDrive(xYonu, -yYonu);
