@@ -363,6 +363,14 @@ private double renk_motor_volgate_degeri = 2.4;
   public void teleopPeriodic() {
     motorGucunuSetEt(kumanda_1.getX(), kumanda_1.getY());
 
+    if(kumanda_1.getRawButton(11) == true){
+      renk_bulma_motoru.set(renk_motor_guc_degeri);
+      renk_bulma_motoru.setVoltage(renk_motor_volgate_degeri);
+    } else if(kumanda_1.getRawButtonReleased(11) == true){
+      renk_bulma_motoru.set(0.0);
+      renk_bulma_motoru.setVoltage(0.0);
+    }
+
     if(kumanda_1.getRawButton(10) == true && renk_bulundu == false ){
       System.out.println("Mavi Renk Aranıyor");
       renk_bulma_motoru.set(renk_motor_guc_degeri);
