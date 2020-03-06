@@ -7,8 +7,6 @@
 
 package frc.robot;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 
 import com.revrobotics.ColorMatch;
 import com.revrobotics.ColorMatchResult;
@@ -23,13 +21,11 @@ import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.VictorSP;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 
 public class Robot extends TimedRobot {
@@ -42,9 +38,9 @@ public class Robot extends TimedRobot {
   public static int toplama_motor_kodu = 2;
   public static int ana_kayis_motor_kodu = 3;
   public static int firlatma_motor_kodu = 4;
-
-
   public static int rediktor_motor_kodu = 5;
+
+  public static int renk_bulma_motor_kodu = 6;
  
   public VictorSP sag_on_motor = new VictorSP(sag_on_motor_kodu);
   public VictorSP sag_arka_motor = new VictorSP(sag_arka_motor_kodu);
@@ -55,6 +51,7 @@ public class Robot extends TimedRobot {
   public VictorSP firlatma_motoru = new VictorSP(firlatma_motor_kodu);
   public VictorSP toplama_motoru = new VictorSP(toplama_motor_kodu);
   public VictorSP rediktor_motor = new VictorSP(rediktor_motor_kodu);
+  public VictorSP renk_bulma_motoru = new VictorSP(renk_bulma_motor_kodu);
 
   public Joystick kumanda_1 = new Joystick(0);
   public Joystick kumanda_2 = new Joystick(1);
@@ -113,6 +110,7 @@ public class Robot extends TimedRobot {
     toplama_motoru.setSafetyEnabled(isSafety);
     ana_kayis_motoru.setSafetyEnabled(isSafety);
     firlatma_motoru.setSafetyEnabled(isSafety);
+    renk_bulma_motoru.setSafetyEnabled(isSafety);
 
     sag_arka_motor.setSafetyEnabled(isSafety);
     sag_on_motor.setSafetyEnabled(isSafety);
@@ -126,6 +124,7 @@ public class Robot extends TimedRobot {
     ana_kayis_motoru.enableDeadbandElimination(true);
     rediktor_motor.enableDeadbandElimination(true);
     firlatma_motoru.enableDeadbandElimination(true);
+    renk_bulma_motoru.enableDeadbandElimination(true);
 
     sag_arka_motor.enableDeadbandElimination(true);
     sag_on_motor.enableDeadbandElimination(true);
@@ -147,35 +146,16 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotPeriodic() {
-    
+
+  }
+
+  public Boolean renkBulucu(Color arananRenk){
     Color detectedColor = colorSensor.getColor();
-
-    /**
-     * Run the color match algorithm on our detected color
-     */
-    String colorString;
     ColorMatchResult match = colorMatch.matchClosestColor(detectedColor);
-
-    if (match.color == kBlueTarget) {
-      colorString = "Blue";
-    } else if (match.color == kRedTarget) {
-      colorString = "Red"; 
-    } else if (match.color == kGreenTarget) {
-      colorString = "Green";
-    } else if (match.color == kYellowTarget) {
-      colorString = "Yellow";
-    } else {
-      colorString = "Unknown";
+    if(match.color == arananRenk){
+      return true;
     }
-    /**
-     * Open Smart Dashboard or Shuffleboard to see the color detected by the 
-     * sensor.
-     */
-    SmartDashboard.putNumber("Red", detectedColor.red);
-    SmartDashboard.putNumber("Green", detectedColor.green);
-    SmartDashboard.putNumber("Blue", detectedColor.blue);
-    SmartDashboard.putNumber("Confidence", match.confidence);
-    SmartDashboard.putString("Detected Color", colorString);
+    return false;
   }
 
   /**
@@ -231,10 +211,10 @@ public class Robot extends TimedRobot {
 
   }
 
-   public boolean otonomIleriGit(double calismaSuresi){
+   public boolean otonomIleriGit(double calismaSuresi, double hiz){
     double zaman = Timer.getFPGATimestamp();
     if(zaman - baslangic_zamani < calismaSuresi){
-      differentialDrive.tankDrive(0.5, -0.5);
+      differentialDrive.tankDrive(hiz, -hiz);
       System.out.println("robot ileri gidiyor");
     } else {
       differentialDrive.tankDrive(0.0, 0.0);
@@ -300,7 +280,7 @@ public class Robot extends TimedRobot {
   public void autonomousPeriodic() {
      otonom_basladi =true;
      if(ileri_gidis_tamamlandi == false){
-      boolean  durum = otonomIleriGit(5.0);
+      boolean  durum = otonomIleriGit(5.0,1.0);
       if(durum == true){
         ileri_gidis_tamamlandi = true;
       }
@@ -315,7 +295,7 @@ public class Robot extends TimedRobot {
           }
         } else {
           if(ikinci_gidis_tamamlandi == false){
-            boolean  durum = otonomIleriGit(2.0);
+            boolean  durum = otonomIleriGit(2.0, 1.0);
             if(durum == true){
               ikinci_gidis_tamamlandi = true;
             }
@@ -338,7 +318,7 @@ public class Robot extends TimedRobot {
           }
         } else {
           if(ikinci_gidis_tamamlandi == false){
-            boolean  durum = otonomIleriGit(2.0);
+            boolean  durum = otonomIleriGit(2.0, 1.0);
             if(durum == true){
               ikinci_gidis_tamamlandi = true;
             }
@@ -352,6 +332,9 @@ public class Robot extends TimedRobot {
           }
           
         }
+      } else {
+        donus_tamamlandi = true;
+        ikinci_donus_tamamlandi = true;
       }
 
     if(donus_tamamlandi == true && ikinci_donus_tamamlandi == true){
@@ -414,7 +397,19 @@ public class Robot extends TimedRobot {
     } else {
       toplamaMotorunaGucVer(0.0,0.0);
     }
+
+    if(kumanda_1.getRawButton(10) == true) {
+      renkBulucu(kRedTarget);
+    } else if(kumanda_1.getRawButton(11) == true) {
+      renkBulucu(kGreenTarget);
+    } else if(kumanda_1.getRawButton(12) == true) {
+      renkBulucu(kBlueTarget);
+    } else if(kumanda_1.getRawButton(13) == true) {
+      renkBulucu(kYellowTarget);
+    }
+
   }
+
 
   /**
    * This function is called periodically during test mode.
