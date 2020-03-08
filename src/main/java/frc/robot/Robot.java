@@ -262,6 +262,9 @@ public class Robot extends TimedRobot {
   public boolean otonomTopFirlat(double calismaSuresi) {
     double zaman = Timer.getFPGATimestamp();
     if(zaman - baslangic_zamani < calismaSuresi){
+      if(zaman - baslangic_zamani > 2 ){
+        otonomTopTasima(calismaSuresi -2);
+      }
       firlatma_motoru.setSafetyEnabled(false);
       firlatma_motoru.set(1.0);
       System.out.println("firlatma basladi");
@@ -270,6 +273,7 @@ public class Robot extends TimedRobot {
       firlatma_motoru.set(0.0);
       return true;
    }
+   
    return false;
   }
 
@@ -295,12 +299,21 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousPeriodic() {
      otonom_basladi =true;
-     if(ileri_gidis_tamamlandi == false){
-      boolean  durum = otonomIleriGit(5.0,1.0);
+     if(firlatma_tamamlandi == false){
+      boolean  durum = otonomTopFirlat(7.0);
       if(durum == true){
-        ileri_gidis_tamamlandi = true;
+        firlatma_tamamlandi = true;
       }
      }
+
+     if(firlatma_tamamlandi == true) {
+      if(ileri_gidis_tamamlandi == false){
+        boolean  durum = otonomIleriGit(5.0,1.0);
+        if(durum == true){
+          ileri_gidis_tamamlandi = true;
+        }
+       }
+    }
 
     if(ileri_gidis_tamamlandi == true){
       if(donus_yonu.equals("SAG")){
@@ -326,7 +339,7 @@ public class Robot extends TimedRobot {
           
         }
         
-      } else if (donus_yonu.equals("SOL")) {
+      }  else if (donus_yonu.equals("SOL")) {
         if(donus_tamamlandi == false){
           boolean  donus_durumu = otonomSolaDon(1.0);
           if(donus_durumu == true){
@@ -351,22 +364,10 @@ public class Robot extends TimedRobot {
       } else {
         donus_tamamlandi = true;
         ikinci_donus_tamamlandi = true;
+        motorlariConfigureEt();
       }
-
-    if(donus_tamamlandi == true && ikinci_donus_tamamlandi == true){
-      if(firlatma_tamamlandi == false){
-        boolean top_tasima_durum = otonomTopTasima(7.0);
-        boolean  durum = otonomTopFirlat(7.0);
-        if(top_tasima_durum == true && durum == true){
-          firlatma_tamamlandi = true;
-        }
-       } else {
-         motorlariConfigureEt();
-       }
-      
     }
   }
-}
 
 private boolean renk_bulundu = false;
 private double renk_motor_guc_degeri = 0.2;
