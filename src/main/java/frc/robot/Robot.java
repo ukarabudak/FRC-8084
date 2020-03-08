@@ -273,6 +273,20 @@ public class Robot extends TimedRobot {
    return false;
   }
 
+  public boolean otonomTopTasima(double calismaSuresi) {
+    double zaman = Timer.getFPGATimestamp();
+    if(zaman - baslangic_zamani < calismaSuresi){
+      ana_kayis_motoru.setSafetyEnabled(false);
+      ana_kayis_motoru.set(1.0);
+      System.out.println("Ana top tasima basladi");
+    } else {
+      System.out.println("Ana top tasima tamamlandı");
+      ana_kayis_motoru.set(0.0);
+      return true;
+   }
+   return false;
+  }
+
   /**
    * This function is called periodically during autonomous.
    */
@@ -341,8 +355,9 @@ public class Robot extends TimedRobot {
 
     if(donus_tamamlandi == true && ikinci_donus_tamamlandi == true){
       if(firlatma_tamamlandi == false){
+        boolean top_tasima_durum = otonomTopTasima(7.0);
         boolean  durum = otonomTopFirlat(7.0);
-        if(durum == true){
+        if(top_tasima_durum == true && durum == true){
           firlatma_tamamlandi = true;
         }
        } else {
